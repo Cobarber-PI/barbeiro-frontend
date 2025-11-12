@@ -12,3 +12,6 @@ app.use(createPinia())
 app.use(router)
 
 app.mount('#app')
+
+import VueApexCharts from "vue3-apexcharts";
+app.use(VueApexCharts);

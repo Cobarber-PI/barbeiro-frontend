@@ -1,0 +1,319 @@
+<script setup>
+import { ref, computed, watch, onMounted } from "vue";
+
+/* --- dados (substitua pelos seus / torne props se quiser depois) --- */
+const schedule = ref([
+  { name: "Carlos Silva", service: "Haircut + Beard", time: "09:00", duration: "45 min" },
+  { name: "Pedro Santos", service: "Haircut", time: "10:00", duration: "30 min" },
+  { name: "Lucas Oliveira", service: "Beard Trim", time: "11:00", duration: "20 min" },
+  { name: "Rafael Costa", service: "Haircut + Beard", time: "14:00", duration: "45 min" },
+  { name: "Bruno Lima", service: "Haircut", time: "15:30", duration: "30 min" },
+]);
+
+const weekly = ref([500, 700, 400, 750, 900, 1000, 500]);
+const labels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const maxVal = computed(() => Math.max(...weekly.value, 1000));
+
+const series = ref([{ name: 'Earnings', data: weekly.value }]);
+
+const options = ref({
+  chart: {
+    type: 'bar',
+    toolbar: { show: false },
+    animations: { enabled: true, easing: 'easeinout', speed: 700 },
+    background: 'transparent',
+    foreColor: '#e6edf0'
+  },
+  plotOptions: {
+    bar: {
+      horizontal: false,
+      borderRadius: 5,
+    }
+  },
+  colors: ['#f7c84a'],
+  dataLabels: { enabled: false },
+  grid: {
+    show: true,
+    borderColor: 'rgba(#ffffff, 0.1)',
+    xaxis: { lines: { show: false } },
+  },
+  xaxis: {
+    categories: labels,
+    labels: {
+      style: { colors: ['#bfc6c9'], fontSize: '12px' }
+    },
+    axisBorder: { show: false }
+  },
+  yaxis: {
+    show: true,
+    labels: {
+      style: { colors: '#7f8589', fontSize: '12px' }
+    },
+    tickAmount: 4,
+    min: 0,
+    max: maxVal.value
+  },
+  tooltip: {
+    theme: 'dark',
+    y: {
+      formatter: function (val) { return `R$ ${val}`; }
+    },
+    x: {
+      formatter: function (val) {
+        // mostra "Fri — Earnings : R$ 850" quando desejar (aqui formatamos só o label)
+        return val;
+      }
+    }
+  },
+  fill: {
+    type: 'gradient',
+    gradient: {
+      shade: 'light',
+      type: 'vertical',
+      shadeIntensity: 0.25,
+      inverseColors: false,
+      opacityFrom: 1,
+      opacityTo: 1,
+      stops: [0, 80]
+    }
+  }
+});
+
+/* --- manter reatividade: atualiza series/options se `weekly` mudar --- */
+watch(weekly, (newVal) => {
+  series.value = [{ name: 'Earnings', data: newVal }];
+  options.value = {
+    ...options.value,
+    yaxis: { ...options.value.yaxis, max: Math.max(...newVal, 1000) }
+  };
+}, { deep: true });
+
+/* trigger visual (opcional) */
+onMounted(() => {
+  // nada além do chart — mantive simples
+});
+</script>
+
+<template>
+  <div class="page-wrap">
+    <div class="container-grid">
+
+      <!-- COLUNA ESQUERDA -->
+      <section class="panel schedule">
+        <div class="panel-header">
+          <h2>Today's Schedule</h2>
+          <a class="view-all" href="#">View All ➜</a>
+        </div>
+
+        <div class="schedule-list">
+          <article v-for="(s, i) in schedule" :key="i" class="schedule-item">
+            <div class="si-left">
+              <div class="avatar">👤</div>
+              <div class="si-info">
+                <div class="si-name">{{ s.name }}</div>
+                <div class="si-service">{{ s.service }}</div>
+              </div>
+            </div>
+            <div class="si-right">
+              <div class="si-time">{{ s.time }}</div>
+              <div class="si-duration">{{ s.duration }}</div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- COLUNA DIREITA (topo: resumo de ganhos) -->
+      <div class="right-column">
+        <section class="panel summary">
+          <div class="panel-header">
+            <h2>Earnings Summary</h2>
+          </div>
+
+          <div class="summary-cards">
+            <div class="small-card">
+              <div class="card-label">Total Earnings</div>
+              <div class="card-value">R$ 3.660</div>
+              <div class="card-sub">This week</div>
+            </div>
+
+            <div class="small-card">
+              <div class="card-label">Completed</div>
+              <div class="card-value">42</div>
+              <div class="card-sub">Services</div>
+            </div>
+
+            <div class="small-card">
+              <div class="card-label">Cancellations</div>
+              <div class="card-value red">3</div>
+              <div class="card-sub">This week</div>
+            </div>
+          </div>
+
+          <div class="summary-actions">
+            <button class="btn primary">+ Add Time</button>
+            <button class="btn outline">View Earnings</button>
+          </div>
+        </section>
+
+        <!-- abaixo, o gráfico com mesma largura da coluna -->
+        <section class="panel chart-panel">
+          <div class="panel-header">
+            <h3>Weekly Earnings</h3>
+          </div>
+
+          <div class="chart-area">
+
+            <div class="chart-container">
+              <!-- usa <apexchart> (plugin registrado no main.js) -->
+              <apexchart
+                type="bar"
+                :options="options"
+                :series="series"
+                height="290"
+              />
+            </div>
+          </div>
+
+        </section>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* CORES / VARIÁVEIS */
+:root{
+  --bg: #0b0b0b;
+  --panel-top: #1b1b1b;
+  --panel-bottom: #151515;
+  --muted: #9aa0a6;
+  --accent: #f7c84a;
+  --card-shadow: rgba(0,0,0,0.62);
+}
+
+/* Espaçamento lateral e centralização da página */
+.page-wrap{
+  background: var(--bg);
+  padding: 48px 24px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display:flex;
+  justify-content:center;
+}
+
+/* Container central com largura máxima */
+.container-grid{
+  width: 100%;
+  max-width: 1180px;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* duas colunas iguais */
+  gap: 28px;
+  align-items: start;
+  box-sizing: border-box;
+  color: #eaf0f2;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* Painel genérico */
+.panel{
+  background: linear-gradient(180deg, var(--panel-top), var(--panel-bottom));
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 12px 32px var(--card-shadow), inset 0 1px 0 rgba(255,255,255,0.02);
+  border: 1px solid #333;
+  background-color: #1a1a1a;
+}
+
+/* Left: schedule specifics */
+.schedule{ height: 85%; }
+.panel-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+.panel-header h2, .panel-header h3{ margin:0; font-size:18px; color:#fff; }
+.view-all{ color: var(--accent); text-decoration:none; font-size:13px; }
+
+/* Lista de horários */
+.schedule-list{ display:flex; flex-direction:column; gap:12px; }
+.schedule-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background: #292929;
+  padding:12px;
+  border-radius:10px;
+  border: 1px solid #333;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.schedule-item:hover{
+  border: 1px solid #FBBD23;
+}
+.si-left{ display:flex; gap:12px; align-items:center; }
+.avatar{
+  width:36px; height:36px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(180deg,#2b2b2b,#1f1f1f);
+  box-shadow: 0 4px 10px rgba(0,0,0,.5);
+  font-size:18px;
+}
+.si-name{ font-weight:700; color:#fff; }
+.si-service{ font-size:13px; color:var(--muted); margin-top:2px; }
+.si-right{ text-align:right; min-width:84px; }
+.si-time{ font-weight:800; color:var(--accent); }
+.si-duration{ font-size:12px; color:var(--muted); }
+
+/* Right column (stacka summary + chart) */
+.right-column{ display:flex; flex-direction:column; gap:18px; }
+
+/* Summary cards */
+.summary-cards{
+  display:flex;
+  gap:12px;
+  margin-bottom:12px;
+}
+.small-card{
+  flex:1;
+  padding:12px;
+  border-radius:10px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.015);
+  display:flex;
+  flex-direction:column;
+}
+.card-label{ font-size:13px; color:var(--muted); margin-bottom:6px; }
+.card-value{ font-size:20px; font-weight:800; color:var(--accent); }
+.card-value.red{ color:#ff7b7b; }
+.card-sub{ font-size:12px; color:var(--muted); margin-top:6px; }
+
+/* actions */
+.summary-actions{ display:flex; gap:10px; margin-top:6px; }
+.btn{
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:700;
+  border:none;
+  cursor:pointer;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.55);
+}
+.btn.primary{ background:var(--accent); color:white; }
+.btn.outline{
+  background:transparent; color:#fff;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Chart area (mesma largura da coluna) */
+
+.chart-container{
+  height:290px;
+}
+
+/* ajuste de estilos do Apex (sobrepor cores para tema escuro) */
+
+@media (max-width: 1000px){
+  .container-grid{ grid-template-columns: 1fr; max-width: 920px; }
+  .y-axis{ display:none; }
+  .page-wrap{ padding: 28px 16px; }
+}
+</style>
