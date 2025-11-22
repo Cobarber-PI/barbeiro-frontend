@@ -364,6 +364,7 @@ onMounted(() => {
   .container-grid {
     grid-template-columns: 1fr;
     width: 100%;
+    margin-bottom: 15vh;
   }
 
   .y-axis {
@@ -371,8 +372,6 @@ onMounted(() => {
   }
 
   .schedule {
-    height: 100%;
-    grid-row: auto;
   }
 }
 </style>

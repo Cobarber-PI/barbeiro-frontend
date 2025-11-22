@@ -5,13 +5,16 @@ const portfolio = [
   'https://i.pravatar.cc/600?img=13',
   'https://i.pravatar.cc/600?img=14'
 ];
+import { useUserStore } from '@/stores/UseUserStore'
+
+const user = useUserStore();
 </script>
 
 <template>
   <div class="profile-section">
     <div class="mensagem">
       <h2>Dashboard</h2>
-      <span>Welcome back, João!</span>
+      <span>Welcome back, {{ user.name }}</span>
     </div>
 
     <!-- Wrapper: deixa ambos os cards alinhados como na foto -->
@@ -20,13 +23,13 @@ const portfolio = [
       <section class="profile-card">
         <div class="profile-left">
           <div class="avatar-ring">
-            <img class="avatar" src="https://i.pravatar.cc/150?img=3" alt="avatar" />
+            <img class="avatar" :src="user.avatar" />
           </div>
         </div>
 
         <div class="profile-right">
           <div class="profile-top">
-            <h3 class="profile-name">João Berto</h3>
+            <h3 class="profile-name">{{ user.name }}</h3>
 
             <div class="profile-meta">
               <div class="rating">
@@ -42,7 +45,7 @@ const portfolio = [
                 <svg class="briefcase" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M10 2h4a2 2 0 0 1 2 2v2h3a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a1 1 0 0 1 1-1h3V4a2 2 0 0 1 2-2h2zM10 6V4H8v2h2zm6 0V4h-2v2h2z"/>
                 </svg>
-                <span class="exp-text">5 years of experience</span>
+                <span class="exp-text">{{ user.experienceYears }} Years of experience</span>
               </div>
             </div>
           </div>
@@ -50,9 +53,7 @@ const portfolio = [
           <div class="about-card">
             <h4>About Me</h4>
             <p>
-              Passionate barber specializing in modern cuts, fades, and beard grooming. I take pride in delivering
-              premium service and helping clients look their best. Every cut is crafted with precision and attention to
-              detail.
+              {{ user.about }}
             </p>
           </div>
         </div>
@@ -65,7 +66,7 @@ const portfolio = [
         </div>
 
         <div class="portfolio-grid">
-          <div v-for="(img, idx) in portfolio" :key="idx" class="portfolio-item">
+          <div v-for="(img, idx) in user.portfolio" :key="idx" class="portfolio-item">
             <img :src="img" alt="portfolio image" />
           </div>
         </div>
